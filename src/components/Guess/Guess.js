@@ -1,24 +1,24 @@
-import React from 'react';
-import { range } from '../../utils';
-import { NUM_OF_GUESSES_ALLOWED, WORD_LENGTH } from '../../constants';
+import React, { useMemo } from 'react';
 
-function Guess({ guesses }) {
-  const getRow = (index) => {
-    return guesses[index]?.result || range(WORD_LENGTH);
-  };
+import { range } from '../../utils';
+import { WORD_LENGTH } from '../../constants';
+import { checkGuess } from '../../game-helpers';
+
+function Cell({ status, children }) {
+  return <span className={`cell ${status || ''}`}>{children}</span>;
+}
+
+function Guess({ guess, answer }) {
+  const result = useMemo(() => checkGuess(guess, answer), [guess, answer]);
 
   return (
-    <div className="guess-results">
-      {range(NUM_OF_GUESSES_ALLOWED).map((_, row) => (
-        <p key={row} className="guess">
-          {getRow(row).map((cell, col) => (
-            <span key={col} className={`cell ${cell.status}`}>
-              {cell.letter || ''}
-            </span>
-          ))}
-        </p>
+    <p className="guess">
+      {range(WORD_LENGTH).map((index) => (
+        <Cell key={index} status={result?.[index]?.status}>
+          {result?.[index]?.letter}
+        </Cell>
       ))}
-    </div>
+    </p>
   );
 }
 

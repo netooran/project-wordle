@@ -2,44 +2,52 @@ import React, { useMemo, useState } from 'react';
 
 import { sample } from '../../utils';
 import { WORDS } from '../../data';
-import GuessInput from '../GuessInput/GuessInput';
-import Guess from '../Guess/Guess';
+import GuessInput from '../GuessInput';
+import GuessResults from '../GuessResults';
 
-import { checkGuess } from '../../game-helpers';
-import { NUM_OF_GUESSES_ALLOWED, RESULT, STATUS } from '../../constants';
-import GameResult from '../GameResult/GameResult';
-
-// Pick a random word on every pageload.
-const answer = sample(WORDS);
-// To make debugging easier, we'll log the solution in the console.
-console.info({ answer });
+import { NUM_OF_GUESSES_ALLOWED, GAME_STATUS } from '../../constants';
+import GameOverBanner from '../GameOverBanner';
 
 function Game() {
+  const [answer, setAnswer] = useState(sample(WORDS));
+  console.info({ answer });
+
   const [guesses, setGuesses] = useState([]);
-  const [result, setResult] = useState('');
-  const isGameOver = useMemo(() => result !== '', [result]);
+  const [gameStatus, setGameStatus] = useState(GAME_STATUS.RUNNING);
 
-  const addGuess = (guess) => {
-    const result = checkGuess(guess, answer);
-    setGuesses([...guesses, { id: crypto.randomUUID(), guess, result }]);
+  const isGameOver = useMemo(
+    () => gameStatus !== GAME_STATUS.RUNNING,
+    [gameStatus]
+  );
 
-    if (result.every(({ status }) => status === STATUS.CORRECT))
-      setResult(RESULT.WON);
-    if (guesses.length >= NUM_OF_GUESSES_ALLOWED - 1) setResult(RESULT.LOST);
+  const submitGuess = (tentativeGuess) => {
+    const nextGuesses = [...guesses, tentativeGuess];
+    setGuesses(nextGuesses);
+
+    if (tentativeGuess === answer) setGameStatus(GAME_STATUS.WON);
+    else if (nextGuesses.length >= NUM_OF_GUESSES_ALLOWED)
+      setGameStatus(GAME_STATUS.LOST);
+  };
+
+  const restartGame = () => {
+    setAnswer(sample(WORDS));
+    setGameStatus(GAME_STATUS.RUNNING);
+    setGuesses([]);
   };
 
   return (
     <>
+      <GuessInput submitGuess={submitGuess} disabled={isGameOver} />
+      <GuessResults guesses={guesses} answer={answer} />
+
       {isGameOver && (
-        <GameResult
+        <GameOverBanner
           answer={answer}
-          hasWon={result === RESULT.WON}
+          gameStatus={gameStatus}
           noOfGuesses={guesses.length}
+          restartGame={restartGame}
         />
       )}
-
-      <GuessInput addGuess={addGuess} disabled={isGameOver} />
-      <Guess guesses={guesses} />
     </>
   );
 }

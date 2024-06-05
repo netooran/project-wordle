@@ -230,3 +230,8 @@ h1 {
     transform: translateY(0%);
   }
 }
+
+.btn.link {
+  text-decoration: underline;
+  font-weight: 700;
+}
