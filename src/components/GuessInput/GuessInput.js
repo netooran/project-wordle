@@ -19,6 +19,8 @@ function GuessInput({ addGuess, disabled }) {
         required
         minLength={5}
         maxLength={5}
+        pattern="[a-zA-Z]{5}"
+        title="5 letter word"
         disabled={disabled}
         value={guess}
         onChange={(e) => setGuess(e.target.value.toUpperCase())}
